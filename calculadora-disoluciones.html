@@ -1,0 +1,138 @@
+Developed by Asier Uria
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculation of Weights and Volumes of Reagents</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+        }
+        input, select, button {
+            padding: 10px;
+            margin: 5px 0;
+            width: 100%;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .compound-container {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        .density-input {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Calculation of Weights and Volumes of Reagents</h1>
+        
+        <div id="compounds">
+            <!-- Aquí se agregarán los compuestos -->
+        </div>
+        
+        <button onclick="addCompound()">add Compound</button>
+        <button onclick="calculateAll()">calculate All</button>
+        
+        <h2>Results:</h2>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        let compoundCount = 0;
+
+        function addCompound() {
+            compoundCount++;
+            const compoundHTML = `
+                <div class="compound-container" id="compound-${compoundCount}">
+                    <h3>compound ${compoundCount}</h3>
+                    <label for="formula-${compoundCount}">Chemical Formula:</label>
+                    <input type="text" id="formula-${compoundCount}" placeholder="Introduce Chemical Formula">
+                    
+                    <label for="molar Mass-${compoundCount}">molar Mass (g/mol):</label>
+                    <input type="number" id="molarMass-${compoundCount}" placeholder="Introduce molar Mass">
+                    
+                    <label for="state-${compoundCount}">State:</label>
+                    <select id="state-${compoundCount}" onchange="toggleDensity(${compoundCount})">
+                        <option value="solid">solid</option>
+                        <option value="liquid">liquid</option>
+                    </select>
+                    
+                    <div class="density-input" id="density-container-${compoundCount}">
+                        <label for="density-${compoundCount}">density (g/mL):</label>
+                        <input type="number" id="density-${compoundCount}" placeholder="Introduce density">
+                    </div>
+                    
+                    <label for="volume-${compoundCount}">Final Volume(L):</label>
+                    <input type="number" id="volume-${compoundCount}" placeholder="Introduce Volume(L)">
+                    
+                    <label for="concentration-${compoundCount}">concentration (M):</label>
+                    <input type="number" id="concentration-${compoundCount}" placeholder="Introduce concentration (M)">
+                </div>
+            `;
+            document.getElementById("compounds").insertAdjacentHTML('beforeend', compoundHTML);
+        }
+
+        function toggleDensity(compoundId) {
+            const state = document.getElementById(`state-${compoundId}`).value;
+            const densityContainer = document.getElementById(`density-container-${compoundId}`);
+            densityContainer.style.display = (state === "liquid") ? "block" : "none";
+        }
+
+        function calculateMass(molarMass, volume, concentration) {
+            return concentration * volume * molarMass;
+        }
+
+        function calculateVolume(mass, density) {
+            return mass / density;
+        }
+
+        function calculateAll() {
+            let resultsHTML = '';
+            for (let i = 1; i <= compoundCount; i++) {
+                const formula = document.getElementById(`formula-${i}`).value;
+                const molarMass = parseFloat(document.getElementById(`molarMass-${i}`).value);
+                const volume = parseFloat(document.getElementById(`volume-${i}`).value);
+                const concentration = parseFloat(document.getElementById(`concentration-${i}`).value);
+                const state = document.getElementById(`state-${i}`).value;
+                
+                if (isNaN(molarMass) || isNaN(volume) || isNaN(concentration)) {
+                    resultsHTML += `<p>Por favor, introduce valores válidos para el Compuesto ${i}.</p>`;
+                    continue;
+                }
+                
+                const mass = calculateMass(molarMass, volume, concentration);
+                let result = `For ${formula}, You need ${mass.toFixed(2)} g.`;
+                
+                if (state === "liquid") {
+                    const density = parseFloat(document.getElementById(`density-${i}`).value);
+                    if (isNaN(density)) {
+                        resultsHTML += `<p>Por favor, introduce una densidad válida para el Compuesto ${i}.</p>`;
+                        continue;
+                    }
+                    const liquidVolume = calculateVolume(mass, density);
+                    result += ` Equals ${liquidVolume.toFixed(2)} mL.`;
+                }
+                
+                resultsHTML += `<p>${result}</p>`;
+            }
+            document.getElementById("results").innerHTML = resultsHTML;
+        }
+    </script>
+</body>
+</html>
